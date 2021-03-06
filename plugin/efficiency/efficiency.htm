@@ -89,10 +89,10 @@
     /* Update method: */
     onUpdate: function(update) {
       // mi/kWh is simply speed / power
-      if metrics["v.p.power"] == 0 {  // zero power so stationary or regenning
+      if metrics["v.b.power"] == 0 {  // zero power so stationary or regenning
         metrics["v.p.miles_per_kwh"] = 8; // make needle go to infinity
       } else {
-        metrics["v.p.miles_per_kwh"] = metrics["v.p.speed"] / metrics["v.p.power"];
+        metrics["v.p.miles_per_kwh"] = metrics["v.p.speed"] / metrics["v.b.power"];
       }
       // Create gauge data set from metric:
       var data = [ metrics["v.p.miles_per_kwh"] ];
