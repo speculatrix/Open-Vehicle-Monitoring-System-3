@@ -1,0 +1,161 @@
+<!--
+  efficiency.htm
+  a web plugin for OVMS which shows you the current efficiency in miles/kWh
+  and inverse efficiency in kWh/km
+
+  licenced under GPLv3 by Paul Mansfield paul/at/mansfield/dot/co/dot/uk
+-->
+
+<style>
+.indicator > .label {
+  font-size: 150%;
+  line-height: 200%;
+  margin: 10px;
+  padding: 10px;
+  display: block;
+  border-radius: 50px;
+}
+.metric.number .label {
+  min-width: 8em;
+}
+.metric.number {
+  display: block;
+  float: none;
+  text-align: center;
+}
+</style>
+
+<div class="panel panel-primary">
+  <div class="panel-heading">Efficiency</div>
+  <div class="panel-body">
+
+    <div class="receiver" id="efficiency-receiver">
+
+      <div class="row">
+        <div class="col-sm-6">
+          <div class="metric chart" data-metric="miles_per_kwh" style="height:300px">
+            <div class="chart-box gaugechart" id="miles_per_kwh-gauge"/>
+          </div>
+          <br class="clearfix"/>
+        </div>
+        <div class="col-sm-6">
+          <div class="metric chart" data-metric="kwh_per_km" style="height:300px">
+            <div class="chart-box gaugechart" id="kwh_per_km-gauge"/>
+          </div>
+          <br class="clearfix"/>
+        </div>
+       </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+
+  /* Init efficiency gauges: */
+  $("#miles_per_kwh-gauge").chart({
+    chart: {
+      type: 'gauge',
+      spacing: [0, 0, 0, 0],
+      margin: [0, 0, 0, 0],
+      animation: { duration: 250, easing: 'easeOutExpo' },
+    },
+    title: { text: "Mi/kWh", verticalAlign: "middle", y: 75 },
+    credits: { enabled: false },
+    tooltip: { enabled: false },
+    plotOptions: {
+      gauge: { dataLabels: { enabled: false }, overshoot: 5 }
+    },
+    pane: [{
+      startAngle: -120, endAngle: 120, size: '100%', center: ['50%', '60%']
+    }],
+    yAxis: [{
+      title: { text: 'mi/kWh' },
+      className: 'miles_per_kwh',
+      reversed: false,
+      min: 0, max: 6,
+      minorTickInterval: 0.1, minorTickLength: 5, minorTickPosition: 'inside',
+      tickInterval: 0.5, tickPosition: 'inside', tickLength: 13,
+      labels: { step: 1, distance: -28, x: 0, y: 5, zIndex: 2 },
+    }],
+    series: [{
+      name: 'miles_per_kwh', data: [0],
+      className: 'miles_per_kwh',
+      animation: { duration: 0 },
+      pivot: { radius: '10' },
+      dial: { radius: '88%', topWidth: 1, baseLength: '20%', baseWidth: 10, rearLength: '20%' },
+    }],
+    /* Update method: */
+    onUpdate: function(update) {
+      // mi/kWh is simply speed / power
+      if metrics["v.p.power"] == 0 {  // zero power so stationary or regenning
+        metrics["v.p.miles_per_kwh"] = 8; // make needle go to infinity
+      } else {
+        metrics["v.p.miles_per_kwh"] = metrics["v.p.speed"] / metrics["v.p.power"];
+      }
+      // Create gauge data set from metric:
+      var data = [ metrics["v.p.miles_per_kwh"] ];
+      // Update chart:
+      this.series[0].setData(data);
+    },
+  });
+
+  $("#kwh_per_km-gauge").chart({
+    chart: {
+      type: 'gauge',
+      spacing: [0, 0, 0, 0],
+      margin: [0, 0, 0, 0],
+      animation: { duration: 250, easing: 'easeOutExpo' },
+    },
+    title: { text: "kWh/km", verticalAlign: "middle", y: 75 },
+    credits: { enabled: false },
+    tooltip: { enabled: false },
+    plotOptions: {
+      gauge: { dataLabels: { enabled: false }, overshoot: 5 }
+    },
+    pane: [{
+      startAngle: -120, endAngle: 120, size: '100%', center: ['50%', '60%']
+    }],
+    yAxis: [{
+      title: { text: 'kWh/km' },
+      className: 'kwh_per_km',
+      reversed: true,
+      min: 0.06, max: 0.6,
+      minorTickInterval: 0.02, minorTickLength: 5, minorTickPosition: 'inside',
+      tickInterval: 0.1, tickPosition: 'inside', tickLength: 13,
+      labels: { step: 1, distance: -28, x: 0, y: 5, zIndex: 2 },
+    }],
+    series: [{
+      name: 'kwh_per_km', data: [0],
+      className: 'kwh_per_km',
+      animation: { duration: 0 },
+      pivot: { radius: '10' },
+      dial: { radius: '88%', topWidth: 1, baseLength: '20%', baseWidth: 10, rearLength: '20%' },
+    }],
+    /* Update method: */
+    onUpdate: function(update) {
+      // Create gauge data set from metric:
+      var data = [ 0.1 ];
+      // Update chart:
+      this.series[0].setData(data);
+    },
+  });
+
+
+  /* Init indicators: */
+  $('#efficiency-receiver').on('msg:metrics', function(e, update) {
+    $(this).find('.indicator').each(function() {
+      var $el = $(this), metric = $el.data("metric"), val = update[metric];
+      if (val == null)
+        return;
+      else if (val != 0)
+        $el.children().removeClass('label-default').addClass('label-danger');
+      else if (val == 0)
+        $el.children().removeClass('label-danger').addClass('label-default');
+    });
+  });
+
+
+})();
+</script>
