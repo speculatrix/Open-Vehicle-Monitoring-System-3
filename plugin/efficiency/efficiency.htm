@@ -94,7 +94,8 @@
           miles_per_kwh = 9           // display "infinity"
       }
       if (metrics["v.b.power"] > 0) {  // zero power so stationary or regenning
-        miles_per_kwh = metrics["v.p.speed"] / metrics["v.b.power"];
+          // convert speed from kmh to mph
+          miles_per_kwh = 0.621 * metrics["v.p.speed"] / metrics["v.b.power"];
       }
       // Update chart with data series
       var data = [ miles_per_kwh ];
