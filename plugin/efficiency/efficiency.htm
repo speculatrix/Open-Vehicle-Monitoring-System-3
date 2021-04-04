@@ -33,13 +33,13 @@
 
       <div class="row">
         <div class="col-sm-6">
-          <div class="metric chart" data-metric="miles_per_kwh" style="height:300px">
+          <div class="metric chart" data-metric="v.p.speed,v.b.power" style="height:300px">
             <div class="chart-box gaugechart" id="miles_per_kwh-gauge"/>
           </div>
           <br class="clearfix"/>
         </div>
         <div class="col-sm-6">
-          <div class="metric chart" data-metric="kwh_per_km" style="height:300px">
+          <div class="metric chart" data-metric="v.p.speed,v.b.power" style="height:300px">
             <div class="chart-box gaugechart" id="kwh_per_km-gauge"/>
           </div>
           <br class="clearfix"/>
@@ -123,8 +123,8 @@
       title: { text: 'kWh/km' },
       className: 'kwh_per_km',
       reversed: true,
-      min: 0.06, max: 0.6,
-      minorTickInterval: 0.02, minorTickLength: 5, minorTickPosition: 'inside',
+      min: 0.05, max: 1.0,
+      minorTickInterval: 0.04, minorTickLength: 5, minorTickPosition: 'inside',
       tickInterval: 0.1, tickPosition: 'inside', tickLength: 13,
       labels: { step: 1, distance: -28, x: 0, y: 5, zIndex: 2 },
     }],
@@ -138,7 +138,7 @@
     /* Update method: */
     onUpdate: function(update) {
       // kWh/km = power / speed
-      var kwh_per_km = 1; // default assume off
+      var kwh_per_km = 1.2; // default assume worst case
       if (metrics["v.p.speed"] > 0) {  // zero power so stationary or regenning
         kwh_per_km = metrics["v.b.power"] / metrics["v.p.speed"];
       }
@@ -148,6 +148,19 @@
     },
   });
 
+  /* Test metrics generator: */
+  const debug = false;
+  if (debug) {
+    $('<button type="button" class="btn btn-default">Generate random data</button>')
+      .appendTo('.receiver')
+      .on('click', function() {
+        var td = {};
+        td["v.p.speed"] = Math.random() * 100;
+        td["v.b.power"] = Math.random() * 110 - 10;
+        console.log("Test data:", td);
+        $('.receiver').trigger('msg:metrics', $.extend(metrics, td));
+    });
+  }
 
 })();
 </script>
